@@ -1,1 +1,8 @@
-
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+<rect width="300" height="300" fill="#fff"/>
+<g fill="#111">
+<rect x="15" y="15" width="75" height="75"/><rect x="30" y="30" width="45" height="45" fill="#fff"/><rect x="42" y="42" width="21" height="21"/>
+<rect x="210" y="15" width="75" height="75"/><rect x="225" y="30" width="45" height="45" fill="#fff"/><rect x="237" y="42" width="21" height="21"/>
+<rect x="15" y="210" width="75" height="75"/><rect x="30" y="225" width="45" height="45" fill="#fff"/><rect x="42" y="237" width="21" height="21"/>
+<path d="M105 15h15v15h-15zm30 0h15v30h-15zm-30 45h30v15h-30zm45 15h15v15h-15zm30-60h15v30h-15zm-45 75h15v15h-15zm30 0h30v15h-30zm45 0h15v30h-15zm30 0h15v15h-15zM105 120h15v15h-15zm30 0h45v15h-45zm60 0h15v15h-15zm30 0h30v15h-30zM105 150h30v15h-30zm45 0h15v30h-15zm30 0h30v15h-30zm45 0h15v30h-15zM105 195h15v30h-15zm30 0h30v15h-30zm45 15h15v15h-15zm30-15h30v15h-30zm-105 45h15v15h-15zm30 0h45v15h-45zm60 0h15v15h-15zm30 0h15v30h-15z"/>
+</g></svg>
