@@ -29,6 +29,8 @@
       <a href="#campanha">Campanha</a>
       <a href="#observe">Observe</a>
       <a href="#prevencao">Cuide</a>
+      <a href="#mural">Mural</a>
+      <a href="#participar">Participar</a>
       <a href="#quiz">Quiz</a>
     </nav>
 
@@ -286,6 +288,137 @@
       </div>
     </section>
 
+    <!-- MURAL DIGITAL -->
+    <section class="mural-section" id="mural">
+      <div class="section-heading mural-heading">
+        <div>
+          <span class="eyebrow">MURAL DIGITAL</span>
+          <h2>Histórias que merecem ser compartilhadas.</h2>
+        </div>
+        <p>
+          Fotos e mensagens de participantes da campanha. As contribuições passam por
+          aprovação antes de aparecerem publicamente.
+        </p>
+      </div>
+
+      <div class="mural-stats" aria-label="Estatísticas do mural">
+        <div><strong id="muralTotal">0</strong><span>histórias</span></div>
+        <div><strong id="muralDogs">0</strong><span>cães</span></div>
+        <div><strong id="muralCats">0</strong><span>gatos</span></div>
+        <div><strong id="muralOthers">0</strong><span>outros</span></div>
+      </div>
+
+      <div class="mural-toolbar">
+        <div class="mural-filters" role="group" aria-label="Filtrar mural">
+          <button type="button" class="mural-filter is-active" data-mural-filter="todos">Todos</button>
+          <button type="button" class="mural-filter" data-mural-filter="cachorros">🐶 Cães</button>
+          <button type="button" class="mural-filter" data-mural-filter="gatos">🐱 Gatos</button>
+          <button type="button" class="mural-filter" data-mural-filter="outros">🐾 Outros</button>
+        </div>
+        <label class="mural-search">
+          <span aria-hidden="true">⌕</span>
+          <span class="sr-only">Pesquisar no mural</span>
+          <input id="muralSearch" type="search" placeholder="Pesquisar pelo nome do pet..." autocomplete="off">
+        </label>
+      </div>
+
+      <div class="mural-loading" id="muralLoading" role="status">
+        <span class="loading-orbit" aria-hidden="true">💗</span>
+        <strong>Carregando histórias...</strong>
+      </div>
+
+      <div class="mural-grid" id="muralGrid" aria-live="polite"></div>
+
+      <div class="mural-empty" id="muralEmpty" hidden>
+        <div class="mural-empty-icon">🌸</div>
+        <h3>Seja uma das primeiras histórias</h3>
+        <p>Envie uma foto e uma mensagem para começar a construir o nosso mural.</p>
+        <a class="button primary" href="#participar">Participar do mural</a>
+      </div>
+    </section>
+
+    <!-- PARTICIPAÇÃO -->
+    <section class="participation-section" id="participar">
+      <div class="participation-layout">
+        <div class="participation-copy">
+          <span class="eyebrow">FAÇA PARTE</span>
+          <h2>Seu pet também pode fazer parte dessa história. 💗</h2>
+          <p>
+            Preencha o formulário aqui mesmo no site. Envie uma foto especial,
+            conte uma pequena história e ajude a espalhar uma mensagem de carinho e cuidado.
+          </p>
+
+          <div class="participation-points">
+            <div><span>01</span><strong>Envie sua foto</strong><small>Uma imagem de até 8 MB.</small></div>
+            <div><span>02</span><strong>Conte sua história</strong><small>Uma mensagem curta e especial.</small></div>
+            <div><span>03</span><strong>Aguarde a aprovação</strong><small>Depois, ela aparece no mural.</small></div>
+          </div>
+        </div>
+
+        <form class="participation-form" id="participationForm" novalidate>
+          <div class="form-header">
+            <span class="form-icon">🎀</span>
+            <div>
+              <span class="eyebrow">PARTICIPAÇÃO</span>
+              <h3>Envie sua história</h3>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label class="form-field">
+              <span>Seu nome <b>*</b></span>
+              <input id="participantName" name="nome" type="text" maxlength="80" required placeholder="Como você gostaria de ser identificado(a)?">
+            </label>
+
+            <label class="form-field">
+              <span>Nome do pet <b>*</b></span>
+              <input id="petName" name="pet" type="text" maxlength="60" required placeholder="Ex.: Luna">
+            </label>
+
+            <label class="form-field">
+              <span>Seu pet é <b>*</b></span>
+              <select id="petType" name="tipo" required>
+                <option value="">Selecione...</option>
+                <option value="Cachorro">🐶 Cachorro</option>
+                <option value="Gato">🐱 Gato</option>
+                <option value="Coelho">🐰 Coelho</option>
+                <option value="Outro">🐾 Outro</option>
+              </select>
+            </label>
+
+            <label class="form-field form-field-full">
+              <span>Uma mensagem para o seu pet <b>*</b></span>
+              <textarea id="petMessage" name="mensagem" maxlength="250" required placeholder="Conte em poucas palavras por que ele é especial para você."></textarea>
+              <small>Até 250 caracteres.</small>
+            </label>
+
+            <label class="upload-field form-field-full" for="petPhoto">
+              <input id="petPhoto" name="foto" type="file" accept="image/jpeg,image/png,image/webp,image/*" required>
+              <span class="upload-icon">📸</span>
+              <strong>Escolher uma foto</strong>
+              <small id="fileName">Nenhuma foto selecionada · até 8 MB</small>
+            </label>
+
+            <label class="consent-field form-field-full">
+              <input id="consent" type="checkbox" required>
+              <span>
+                Autorizo a publicação da foto, do nome informado e da mensagem no Mural Digital do Outubro Rosa Pet.
+              </span>
+            </label>
+          </div>
+
+          <div class="form-status" id="formStatus" hidden aria-live="polite"></div>
+
+          <button class="button primary form-submit" id="submitParticipation" type="submit">
+            <span>Enviar para o mural</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+
+          <p class="form-note">Sua participação ficará aguardando aprovação antes de aparecer publicamente.</p>
+        </form>
+      </div>
+    </section>
+
     <!-- QUIZ -->
     <section class="quiz-section" id="quiz">
       <div class="quiz-header">
@@ -338,8 +471,8 @@
           <span class="eyebrow">COMPARTILHE ESSA IDEIA</span>
           <h2>Uma informação pode chegar a quem precisa.</h2>
           <p>
-            Use o QR Code para direcionar para materiais educativos, formulário
-            da campanha, clínica parceira ou página oficial da ação.
+            Participe diretamente pelo formulário desta página ou use o QR Code para
+            compartilhar a campanha com outras pessoas.
           </p>
 
           <div class="cta-tags">
@@ -352,7 +485,7 @@
         <div class="qr-card">
           <div class="qr-label">APONTE A CÂMERA</div>
           <img src="assets/qrcode-demo.svg" alt="QR Code demonstrativo da campanha">
-          <strong>Saiba mais sobre a campanha</strong>
+          <strong>Compartilhe a campanha</strong>
           <small>QR Code demonstrativo</small>
         </div>
       </div>
@@ -376,6 +509,22 @@
 
   </main>
 
+  <!-- VISUALIZAÇÃO AMPLIADA DO MURAL -->
+  <div class="mural-lightbox" id="muralLightbox" hidden role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+    <div class="mural-lightbox-panel">
+      <button class="mural-lightbox-close" id="lightboxClose" type="button" aria-label="Fechar foto">×</button>
+      <div class="mural-lightbox-image">
+        <img id="lightboxImage" src="" alt="">
+      </div>
+      <div class="mural-lightbox-content">
+        <span class="eyebrow">HISTÓRIA DO MURAL</span>
+        <h3 id="lightboxTitle">Meu pet</h3>
+        <p id="lightboxMessage"></p>
+        <strong id="lightboxAuthor"></strong>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <div class="footer-brand">
       <span>🎀</span>
@@ -391,6 +540,9 @@
 
     <p>© <span id="year"></span> Campanha de conscientização</p>
   </footer>
+
+  <script src="config.js"></script>
+  <script src="mural.js" defer></script>
 
   <script>
     // Ano automático
