@@ -1,8 +1,17 @@
 /*
   CONFIGURAÇÃO DO MURAL
-  1. Publique o Code.gs como Web App no Google Apps Script.
-  2. Cole a URL terminada em /exec abaixo.
+  Outubro Rosa Pet
+
+  Backend:
+  Google Apps Script
+  Google Sheets
+  Google Drive
 */
+
 window.MURAL_CONFIG = {
-  apiUrl: "COLE_AQUI_A_URL_DO_GOOGLE_APPS_SCRIPT"
+
+  // URL do Google Apps Script publicado como Web App
+  apiUrl:
+    "https://script.google.com/macros/s/AKfycbykXUohIIK7VHmCwEYerVT8YZpLYe8ylMH0GBbRdj5piODS_5Eats4d2caOEVTbwXbI/exec"
+
 };
