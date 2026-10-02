@@ -296,8 +296,8 @@
           <h2>Histórias que merecem ser compartilhadas.</h2>
         </div>
         <p>
-          Fotos e mensagens de participantes da campanha. As contribuições passam por
-          aprovação antes de aparecerem publicamente.
+          Fotos e mensagens de participantes da campanha. As novas contribuições são
+          publicadas automaticamente no mural após o envio.
         </p>
       </div>
 
@@ -351,7 +351,7 @@
           <div class="participation-points">
             <div><span>01</span><strong>Envie sua foto</strong><small>Uma imagem de até 8 MB.</small></div>
             <div><span>02</span><strong>Conte sua história</strong><small>Uma mensagem curta e especial.</small></div>
-            <div><span>03</span><strong>Aguarde a aprovação</strong><small>Depois, ela aparece no mural.</small></div>
+            <div><span>03</span><strong>Publicação automática</strong><small>Depois do envio, ela aparece no mural.</small></div>
           </div>
         </div>
 
@@ -414,7 +414,7 @@
             <span aria-hidden="true">↗</span>
           </button>
 
-          <p class="form-note">Sua participação ficará aguardando aprovação antes de aparecer publicamente.</p>
+          <p class="form-note">Sua participação é publicada automaticamente no Mural Digital após o envio.</p>
         </form>
       </div>
     </section>
@@ -541,9 +541,6 @@
     <p>© <span id="year"></span> Campanha de conscientização</p>
   </footer>
 
-  <script src="config.js"></script>
-  <script src="mural.js" defer></script>
-
   <script>
     // Ano automático
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -626,6 +623,438 @@
     document.querySelectorAll(
       ".pillar, .observation-card, .important-note, .checklist-card, .quiz-box, .responsibility"
     ).forEach(element => observer.observe(element));
+
+
+    // ================================================================
+    // MURAL DIGITAL + FORMULÁRIO
+    // Integração direta com o Google Apps Script.
+    // ================================================================
+
+    const MURAL_API_URL = "https://script.google.com/macros/s/AKfycbwHZes5xLtTREn1jpdKSPSDmWVf1mwkJ4J_RjFqAWxGQUt0kjCjULKMPs38r4GDtqMt/exec";
+    const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+    const muralState = {
+      items: [],
+      filter: "todos",
+      search: ""
+    };
+
+    const muralElements = {
+      grid: document.getElementById("muralGrid"),
+      empty: document.getElementById("muralEmpty"),
+      loading: document.getElementById("muralLoading"),
+      search: document.getElementById("muralSearch"),
+      filters: document.querySelectorAll("[data-mural-filter]"),
+      total: document.getElementById("muralTotal"),
+      dogs: document.getElementById("muralDogs"),
+      cats: document.getElementById("muralCats"),
+      others: document.getElementById("muralOthers"),
+      form: document.getElementById("participationForm"),
+      status: document.getElementById("formStatus"),
+      file: document.getElementById("petPhoto"),
+      fileName: document.getElementById("fileName"),
+      submit: document.getElementById("submitParticipation"),
+      lightbox: document.getElementById("muralLightbox"),
+      lightboxImage: document.getElementById("lightboxImage"),
+      lightboxTitle: document.getElementById("lightboxTitle"),
+      lightboxMessage: document.getElementById("lightboxMessage"),
+      lightboxAuthor: document.getElementById("lightboxAuthor"),
+      lightboxClose: document.getElementById("lightboxClose")
+    };
+
+    function normalizeText(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function petEmoji(tipo) {
+      const type = normalizeText(tipo);
+      if (type.includes("gato")) return "🐱";
+      if (type.includes("cachorro") || type.includes("cao")) return "🐶";
+      if (type.includes("coelho")) return "🐰";
+      return "🐾";
+    }
+
+    function isDog(item) {
+      const type = normalizeText(item.tipo);
+      return type.includes("cachorro") || type.includes("cao");
+    }
+
+    function isCat(item) {
+      return normalizeText(item.tipo).includes("gato");
+    }
+
+    function renderMuralStats() {
+      const dogs = muralState.items.filter(isDog).length;
+      const cats = muralState.items.filter(isCat).length;
+      const others = Math.max(0, muralState.items.length - dogs - cats);
+
+      muralElements.total.textContent = muralState.items.length;
+      muralElements.dogs.textContent = dogs;
+      muralElements.cats.textContent = cats;
+      muralElements.others.textContent = others;
+    }
+
+    function getVisibleItems() {
+      const term = normalizeText(muralState.search);
+
+      return muralState.items.filter(item => {
+        const type = normalizeText(item.tipo);
+        const filter = muralState.filter;
+
+        const matchesFilter =
+          filter === "todos" ||
+          (filter === "cachorros" && (type.includes("cachorro") || type.includes("cao"))) ||
+          (filter === "gatos" && type.includes("gato")) ||
+          (filter === "outros" && !type.includes("gato") && !type.includes("cachorro") && !type.includes("cao"));
+
+        const searchable = normalizeText(
+          `${item.pet || ""} ${item.nome || ""} ${item.mensagem || ""}`
+        );
+
+        return matchesFilter && searchable.includes(term);
+      });
+    }
+
+    function renderMural() {
+      const visibleItems = getVisibleItems();
+      muralElements.grid.innerHTML = "";
+      muralElements.empty.hidden = visibleItems.length > 0;
+
+      if (!visibleItems.length) {
+        return;
+      }
+
+      visibleItems.forEach((item, index) => {
+        const card = document.createElement("article");
+        card.className = "mural-card";
+        card.style.setProperty("--delay", `${Math.min(index * 45, 350)}ms`);
+
+        const imageUrl = String(item.foto || "").trim();
+        const petName = item.pet || "Meu pet";
+        const message = item.mensagem || "Uma história de carinho e cuidado.";
+        const author = item.nome || "Participante";
+        const type = item.tipo || "Pet";
+
+        card.innerHTML = `
+          <button class="mural-photo" type="button" aria-label="Abrir foto de ${escapeHtml(petName)}">
+            ${imageUrl
+              ? `<img src="${escapeHtml(imageUrl)}" alt="Foto de ${escapeHtml(petName)}" loading="lazy">`
+              : `<div class="mural-photo-placeholder" aria-hidden="true">${petEmoji(type)}</div>`}
+            <span class="mural-photo-badge">${petEmoji(type)}</span>
+            <span class="mural-expand" aria-hidden="true">↗</span>
+          </button>
+          <div class="mural-card-body">
+            <div class="mural-meta">
+              <span>${escapeHtml(type)}</span>
+              <span>Outubro Rosa Pet</span>
+            </div>
+            <h3>${escapeHtml(petName)}</h3>
+            <p>“${escapeHtml(message)}”</p>
+            <strong>${escapeHtml(author)}</strong>
+          </div>
+        `;
+
+        card.querySelector(".mural-photo").addEventListener("click", () => {
+          openMuralLightbox(item);
+        });
+
+        muralElements.grid.appendChild(card);
+      });
+    }
+
+    function showMuralError(message) {
+      muralElements.loading.hidden = true;
+      muralElements.empty.hidden = false;
+      muralElements.empty.innerHTML = `
+        <div class="mural-empty-icon">🌸</div>
+        <h3>Não foi possível carregar o mural</h3>
+        <p>${escapeHtml(message)}</p>
+        <button class="button primary" type="button" id="retryMural">Tentar novamente</button>
+      `;
+
+      const retry = document.getElementById("retryMural");
+      if (retry) {
+        retry.addEventListener("click", loadMural);
+      }
+    }
+
+    function loadMural() {
+      muralElements.loading.hidden = false;
+      muralElements.empty.hidden = true;
+
+      const callbackName = `outubroRosaPetCallback_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+      const script = document.createElement("script");
+      let finished = false;
+
+      const cleanup = () => {
+        delete window[callbackName];
+        script.remove();
+      };
+
+      const timeout = window.setTimeout(() => {
+        if (finished) return;
+        finished = true;
+        cleanup();
+        showMuralError("Verifique a conexão com o serviço do mural e tente novamente.");
+      }, 15000);
+
+      window[callbackName] = data => {
+        if (finished) return;
+        finished = true;
+        window.clearTimeout(timeout);
+        cleanup();
+
+        muralElements.loading.hidden = true;
+
+        if (!data || data.success !== true) {
+          showMuralError("O serviço respondeu com um erro.");
+          return;
+        }
+
+        muralState.items = Array.isArray(data.items) ? data.items : [];
+        renderMuralStats();
+        renderMural();
+      };
+
+      script.src = `${MURAL_API_URL}?action=list&callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
+      script.onerror = () => {
+        if (finished) return;
+        finished = true;
+        window.clearTimeout(timeout);
+        cleanup();
+        showMuralError("Não foi possível acessar o serviço do mural.");
+      };
+
+      document.head.appendChild(script);
+    }
+
+    function showFormStatus(message, type) {
+      muralElements.status.textContent = message;
+      muralElements.status.className = `form-status ${type || "info"}`;
+      muralElements.status.hidden = false;
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function submitViaHiddenForm(payload) {
+      return new Promise((resolve, reject) => {
+        const frameName = `submitFrame_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+        const iframe = document.createElement("iframe");
+        iframe.name = frameName;
+        iframe.title = "Envio do formulário";
+        iframe.className = "hidden-submit-frame";
+        iframe.setAttribute("aria-hidden", "true");
+        iframe.style.display = "none";
+        document.body.appendChild(iframe);
+
+        const hiddenForm = document.createElement("form");
+        hiddenForm.method = "POST";
+        hiddenForm.action = MURAL_API_URL;
+        hiddenForm.target = frameName;
+        hiddenForm.acceptCharset = "UTF-8";
+        hiddenForm.style.display = "none";
+
+        const payloadInput = document.createElement("input");
+        payloadInput.type = "hidden";
+        payloadInput.name = "payload";
+        payloadInput.value = JSON.stringify(payload);
+
+        hiddenForm.appendChild(payloadInput);
+        document.body.appendChild(hiddenForm);
+
+        let resolved = false;
+        const finish = () => {
+          if (resolved) return;
+          resolved = true;
+          hiddenForm.remove();
+          iframe.remove();
+          resolve();
+        };
+
+        iframe.addEventListener("load", () => {
+          // O navegador não permite ler a resposta cross-origin do iframe.
+          // O carregamento indica apenas que o POST foi processado pelo navegador.
+          window.setTimeout(finish, 900);
+        }, { once: true });
+
+        try {
+          hiddenForm.submit();
+        } catch (error) {
+          hiddenForm.remove();
+          iframe.remove();
+          reject(error);
+          return;
+        }
+
+        // Fallback caso o iframe não dispare load por causa do ambiente do navegador.
+        window.setTimeout(finish, 3500);
+      });
+    }
+
+    async function handleParticipationSubmit(event) {
+      event.preventDefault();
+
+      if (!MURAL_API_URL) {
+        showFormStatus("O serviço do mural não está configurado.", "error");
+        return;
+      }
+
+      if (!muralElements.form.checkValidity()) {
+        muralElements.form.reportValidity();
+        return;
+      }
+
+      const file = muralElements.file.files[0];
+      const consent = document.getElementById("consent");
+
+      if (!file) {
+        showFormStatus("Escolha uma foto para participar do mural.", "error");
+        return;
+      }
+
+      if (!/^image\/(jpeg|jpg|png|webp)$/i.test(file.type)) {
+        showFormStatus("Use uma imagem JPG, PNG ou WEBP.", "error");
+        return;
+      }
+
+      if (file.size > MAX_IMAGE_BYTES) {
+        showFormStatus("A foto deve ter no máximo 8 MB.", "error");
+        return;
+      }
+
+      if (!consent.checked) {
+        showFormStatus("É necessário autorizar a publicação para participar do mural.", "error");
+        consent.focus();
+        return;
+      }
+
+      const buttonLabel = muralElements.submit.querySelector("span");
+      muralElements.submit.disabled = true;
+      if (buttonLabel) buttonLabel.textContent = "Enviando...";
+      showFormStatus("Enviando sua participação. Aguarde um instante...", "info");
+
+      try {
+        const dataUrl = await fileToDataUrl(file);
+
+        const payload = {
+          nome: document.getElementById("participantName").value.trim(),
+          pet: document.getElementById("petName").value.trim(),
+          tipo: document.getElementById("petType").value,
+          mensagem: document.getElementById("petMessage").value.trim(),
+          consentimento: true,
+          foto: {
+            name: file.name,
+            type: file.type,
+            data: dataUrl
+          }
+        };
+
+        await submitViaHiddenForm(payload);
+
+        muralElements.form.reset();
+        muralElements.fileName.textContent = "Nenhuma foto selecionada · até 8 MB";
+
+        showFormStatus(
+          "💗 Participação enviada com sucesso! Ela foi publicada automaticamente no mural.",
+          "success"
+        );
+
+        // Dá tempo para o Apps Script gravar a linha e o arquivo antes de atualizar o mural.
+        window.setTimeout(() => {
+          loadMural();
+        }, 1800);
+      } catch (error) {
+        console.error("Erro no envio do mural:", error);
+        showFormStatus(
+          "Não foi possível enviar a participação. Tente novamente.",
+          "error"
+        );
+      } finally {
+        muralElements.submit.disabled = false;
+        if (buttonLabel) buttonLabel.textContent = "Enviar para o mural";
+      }
+    }
+
+    function openMuralLightbox(item) {
+      const imageUrl = String(item.foto || "").trim();
+
+      if (!imageUrl) return;
+
+      muralElements.lightboxImage.src = imageUrl;
+      muralElements.lightboxImage.alt = `Foto de ${item.pet || "pet"}`;
+      muralElements.lightboxTitle.textContent = `${petEmoji(item.tipo)} ${item.pet || "Meu pet"}`;
+      muralElements.lightboxMessage.textContent = `“${item.mensagem || "Uma história de carinho e cuidado."}”`;
+      muralElements.lightboxAuthor.textContent = item.nome ? `Por ${item.nome}` : "Participação da campanha";
+      muralElements.lightbox.hidden = false;
+      document.body.classList.add("modal-open");
+      muralElements.lightboxClose.focus();
+    }
+
+    function closeMuralLightbox() {
+      muralElements.lightbox.hidden = true;
+      muralElements.lightboxImage.src = "";
+      document.body.classList.remove("modal-open");
+    }
+
+    muralElements.filters.forEach(button => {
+      button.addEventListener("click", () => {
+        muralElements.filters.forEach(item => item.classList.remove("is-active"));
+        button.classList.add("is-active");
+        muralState.filter = button.dataset.muralFilter || "todos";
+        renderMural();
+      });
+    });
+
+    muralElements.search.addEventListener("input", event => {
+      muralState.search = event.target.value;
+      renderMural();
+    });
+
+    muralElements.file.addEventListener("change", () => {
+      const file = muralElements.file.files[0];
+      muralElements.fileName.textContent = file
+        ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB`
+        : "Nenhuma foto selecionada · até 8 MB";
+    });
+
+    muralElements.form.addEventListener("submit", handleParticipationSubmit);
+    muralElements.lightboxClose.addEventListener("click", closeMuralLightbox);
+
+    muralElements.lightbox.addEventListener("click", event => {
+      if (event.target === muralElements.lightbox) {
+        closeMuralLightbox();
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !muralElements.lightbox.hidden) {
+        closeMuralLightbox();
+      }
+    });
+
+    loadMural();
   </script>
 
 </body>
