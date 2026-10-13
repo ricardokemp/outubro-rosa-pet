@@ -31,7 +31,6 @@
       <a href="#prevencao">Cuide</a>
       <a href="#mural">Mural</a>
       <a href="#participar">Participar</a>
-      <a href="#quiz">Quiz</a>
     </nav>
 
     <a class="header-cta" href="#saiba-mais">Saiba mais</a>
@@ -121,18 +120,15 @@
           <h2 id="video-campanha-titulo" style="margin: .6rem 0 1rem;">Como o carinho previne o câncer pet</h2>
           <p>Reserve alguns minutos para assistir ao vídeo e compartilhar essa mensagem de cuidado com quem também ama os animais.</p>
         </div>
-        <div style="max-width: 420px; width: 100%; margin: 0 auto; overflow: hidden; border-radius: 20px; background: #fff5f8; box-shadow: 0 18px 50px rgba(150, 35, 80, .16);">
-  <video
-    controls
-    playsinline
-    preload="metadata"
-    style="display: block; width: 100%; height: auto; max-height: none; object-fit: contain;"
-    aria-label="Vídeo da campanha Outubro Rosa Pet: Como o Carinho Previne o Câncer Pet"
-  >
-    <source src="assets/Como_o_Carinho_Previne_o_C%C3%A2ncer_Pet.mp4" type="video/mp4">
-    Seu navegador não consegue reproduzir este vídeo.
-  </video>
-</div>
+        <div style="max-width: 900px; margin: 0 auto; overflow: hidden; border-radius: 20px; background: #1f1720; box-shadow: 0 18px 50px rgba(150, 35, 80, .16);">
+          <video controls playsinline preload="metadata"
+            style="display: block; width: 100%; height: auto; max-height: 70vh;"
+            aria-label="Vídeo da campanha Outubro Rosa Pet: Como o Carinho Previne o Câncer Pet">
+            <source src="assets/Como_o_Carinho_Previne_o_C%C3%A2ncer_Pet.mp4" type="video/mp4">
+            Seu navegador não consegue reproduzir este vídeo. Você pode
+            <a href="assets/Como_o_Carinho_Previne_o_C%C3%A2ncer_Pet.mp4">abrir o vídeo diretamente</a>.
+          </video>
+        </div>
       </div>
     </section>
 
@@ -444,51 +440,6 @@
       </div>
     </section>
 
-    <!-- QUIZ -->
-    <section class="quiz-section" id="quiz">
-      <div class="quiz-header">
-        <span class="eyebrow">TESTE RÁPIDO</span>
-        <h2>Você está atento ao seu pet?</h2>
-        <p>Responda 3 perguntas e veja uma mensagem de conscientização.</p>
-      </div>
-
-      <div class="quiz-box" id="quizBox">
-
-        <div class="quiz-progress">
-          <span id="questionNumber">1</span>
-          <div class="progress-track">
-            <div class="progress-bar" id="progressBar"></div>
-          </div>
-          <span>3</span>
-        </div>
-
-        <div class="quiz-question" id="quizQuestion">
-          <span class="question-label">PERGUNTA 01</span>
-          <h3>Você costuma observar seu pet durante os momentos de carinho?</h3>
-
-          <div class="quiz-options">
-            <button type="button" data-answer="yes">Sim, com frequência</button>
-            <button type="button" data-answer="sometimes">Às vezes</button>
-            <button type="button" data-answer="no">Ainda não</button>
-          </div>
-        </div>
-
-        <div class="quiz-result" id="quizResult" hidden>
-          <div class="result-icon">🌸</div>
-          <span class="eyebrow">MENSAGEM PARA VOCÊ</span>
-          <h3>O cuidado começa na atenção.</h3>
-          <p>
-            Continue observando seu animal e mantenha o acompanhamento com
-            um médico-veterinário. Pequenas atitudes fazem parte de uma rotina de cuidado.
-          </p>
-          <button type="button" class="button primary" id="restartQuiz">
-            Refazer o quiz
-          </button>
-        </div>
-
-      </div>
-    </section>
-
     <!-- Seção de QR Code removida -->
 
     <!-- SOURCES -->
@@ -545,71 +496,6 @@
     // Ano automático
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    // Quiz
-    const questions = [
-      {
-        title: "Você costuma observar seu pet durante os momentos de carinho?",
-        label: "PERGUNTA 01"
-      },
-      {
-        title: "Se você perceber uma alteração persistente, o que faria?",
-        label: "PERGUNTA 02"
-      },
-      {
-        title: "O acompanhamento veterinário faz parte da rotina do seu pet?",
-        label: "PERGUNTA 03"
-      }
-    ];
-
-    let currentQuestion = 0;
-
-    const questionNumber = document.getElementById("questionNumber");
-    const progressBar = document.getElementById("progressBar");
-    const quizQuestion = document.getElementById("quizQuestion");
-    const quizResult = document.getElementById("quizResult");
-    const restartQuiz = document.getElementById("restartQuiz");
-
-    function renderQuestion() {
-      const question = questions[currentQuestion];
-
-      questionNumber.textContent = currentQuestion + 1;
-      progressBar.style.width = ((currentQuestion + 1) / questions.length * 100) + "%";
-
-      quizQuestion.innerHTML = `
-        <span class="question-label">${question.label}</span>
-        <h3>${question.title}</h3>
-        <div class="quiz-options">
-          <button type="button">Sim</button>
-          <button type="button">Às vezes</button>
-          <button type="button">Ainda não</button>
-        </div>
-      `;
-
-      quizQuestion.querySelectorAll("button").forEach(button => {
-        button.addEventListener("click", nextQuestion);
-      });
-    }
-
-    function nextQuestion() {
-      currentQuestion++;
-
-      if (currentQuestion >= questions.length) {
-        quizQuestion.hidden = true;
-        quizResult.hidden = false;
-        progressBar.style.width = "100%";
-        questionNumber.textContent = "✓";
-        return;
-      }
-
-      renderQuestion();
-    }
-
-    restartQuiz.addEventListener("click", () => {
-      currentQuestion = 0;
-      quizQuestion.hidden = false;
-      quizResult.hidden = true;
-      renderQuestion();
-    });
 
     // Intersection observer para entradas suaves
     const observer = new IntersectionObserver((entries) => {
@@ -621,7 +507,7 @@
     }, { threshold: 0.1 });
 
     document.querySelectorAll(
-      ".pillar, .observation-card, .important-note, .checklist-card, .quiz-box, .responsibility"
+      ".pillar, .observation-card, .important-note, .checklist-card, .responsibility"
     ).forEach(element => observer.observe(element));
 
 
